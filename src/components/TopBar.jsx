@@ -88,7 +88,7 @@ const TopBar = ({ toggleSidebar }) => {
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
             >
-              <span className="text-2xl">{mockCurrentUser.avatar}</span>
+              <span className="text-2xl">{user?.avatar || '👤'}</span>
             </button>
 
             {showProfileMenu && (
