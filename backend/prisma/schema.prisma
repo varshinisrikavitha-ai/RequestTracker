@@ -1,0 +1,131 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  DEPARTMENT_HEAD
+  STAFF
+  VIEWER
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RequestStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  PROCESSING
+  COMPLETED
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model Department {
+  id         String     @id @default(cuid())
+  name       String     @unique
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  users      User[]
+  categories Category[]
+  requests   Request[]
+
+  @@map("departments")
+}
+
+model Category {
+  id           String     @id @default(cuid())
+  name         String
+  departmentId String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  requests     Request[]
+
+  @@unique([name, departmentId])
+  @@map("categories")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  password     String
+  role         Role      @default(STAFF)
+  departmentId String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  department          Department?           @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  requests            Request[]             @relation("RequestCreator")
+  statusHistoryUpdates RequestStatusHistory[]
+  notifications       Notification[]
+
+  @@map("users")
+}
+
+model Request {
+  id            String        @id @default(cuid())
+  title         String
+  description   String
+  priority      Priority      @default(MEDIUM)
+  status        RequestStatus @default(SUBMITTED)
+  categoryId    String
+  departmentId  String
+  createdBy     String
+  attachmentUrl String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  category      Category      @relation(fields: [categoryId], references: [id])
+  department    Department    @relation(fields: [departmentId], references: [id])
+  creator       User          @relation("RequestCreator", fields: [createdBy], references: [id])
+  statusHistory RequestStatusHistory[]
+
+  @@map("requests")
+}
+
+model RequestStatusHistory {
+  id          String        @id @default(cuid())
+  requestId   String
+  status      RequestStatus
+  comment     String?
+  updatedBy   String
+  createdAt   DateTime      @default(now())
+
+  request     Request       @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  updatedByUser User        @relation(fields: [updatedBy], references: [id])
+
+  @@map("request_status_history")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
