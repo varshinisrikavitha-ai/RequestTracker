@@ -24,8 +24,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     navigate('/login');
   };
 
-  const isAdmin = hasRole('Admin');
-  const isManager = hasRole(['Admin', 'Manager']);
+  const isAdmin = hasRole('ADMIN');
+  const isManager = hasRole(['ADMIN', 'DEPARTMENT_HEAD']);
 
   const menuItems = [
     { name: 'Dashboard', icon: Home, href: '/' },

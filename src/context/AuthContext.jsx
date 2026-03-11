@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { mockUsers } from '../data/mockData';
+import * as authApi from '../api/auth.api';
 
 const AuthContext = createContext();
 
@@ -7,40 +7,46 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Initialize auth from localStorage on mount
+  // On mount: if a token exists, verify it with /auth/me
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
-        console.error('Failed to parse saved user:', error);
-        localStorage.removeItem('currentUser');
-      }
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+    authApi
+      .getMe()
+      .then((res) => {
+        setUser(res.data.data);
+      })
+      .catch(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('currentUser');
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const login = (email, password) => {
-    // Demo: accept any password, just find user by email
-    const foundUser = mockUsers.find((u) => u.email === email);
-    
-    if (foundUser) {
-      // In real app, validate password here
-      const userWithoutPassword = { ...foundUser };
-      setUser(userWithoutPassword);
-      localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-      return { success: true, user: userWithoutPassword };
+  const login = async (email, password) => {
+    try {
+      const res = await authApi.login(email, password);
+      const { user: loggedInUser, token } = res.data.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('currentUser', JSON.stringify(loggedInUser));
+      setUser(loggedInUser);
+      return { success: true, user: loggedInUser };
+    } catch (err) {
+      const message = err?.response?.data?.message || 'Login failed. Check your credentials.';
+      return { success: false, error: message };
     }
-    
-    return { success: false, error: 'User not found' };
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
   };
 
+  // Accepts a single role string or array of roles (backend UPPERCASE enum values)
   const hasRole = (requiredRoles) => {
     if (!user) return false;
     if (typeof requiredRoles === 'string') {
@@ -68,3 +74,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

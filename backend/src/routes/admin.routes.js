@@ -12,28 +12,28 @@ const {
 
 const router = Router();
 
-// All admin routes require authentication and ADMIN role
-router.use(authenticate, authorize('ADMIN'));
+// All admin routes require authentication at minimum
+router.use(authenticate);
 
-// ─── Departments ──────────────────────────────────────────────────────────────
-router.post('/departments', validate(departmentSchema), adminController.createDepartment);
-router.get('/departments', adminController.getDepartments);
+// ─── Departments (read: any authenticated user; write: ADMIN only) ─────────────
+router.get('/departments',     adminController.getDepartments);
 router.get('/departments/:id', adminController.getDepartmentById);
-router.put('/departments/:id', validate(departmentSchema), adminController.updateDepartment);
-router.delete('/departments/:id', adminController.deleteDepartment);
+router.post('/departments',    authorize('ADMIN'), validate(departmentSchema), adminController.createDepartment);
+router.put('/departments/:id', authorize('ADMIN'), validate(departmentSchema), adminController.updateDepartment);
+router.delete('/departments/:id', authorize('ADMIN'), adminController.deleteDepartment);
 
-// ─── Categories ───────────────────────────────────────────────────────────────
-router.post('/categories', validate(categorySchema), adminController.createCategory);
-router.get('/categories', adminController.getCategories);
+// ─── Categories (read: any authenticated user; write: ADMIN only) ──────────────
+router.get('/categories',     adminController.getCategories);
 router.get('/categories/:id', adminController.getCategoryById);
-router.put('/categories/:id', validate(categorySchema), adminController.updateCategory);
-router.delete('/categories/:id', adminController.deleteCategory);
+router.post('/categories',    authorize('ADMIN'), validate(categorySchema), adminController.createCategory);
+router.put('/categories/:id', authorize('ADMIN'), validate(categorySchema), adminController.updateCategory);
+router.delete('/categories/:id', authorize('ADMIN'), adminController.deleteCategory);
 
-// ─── Users ────────────────────────────────────────────────────────────────────
-router.get('/users', adminController.getUsers);
-router.get('/users/:id', adminController.getUserById);
-router.post('/users', validate(createUserSchema), adminController.createUser);
-router.put('/users/:id', validate(updateUserSchema), adminController.updateUser);
-router.delete('/users/:id', adminController.deleteUser);
+// ─── Users (ADMIN only) ───────────────────────────────────────────────────────
+router.get('/users',     authorize('ADMIN'), adminController.getUsers);
+router.get('/users/:id', authorize('ADMIN'), adminController.getUserById);
+router.post('/users',    authorize('ADMIN'), validate(createUserSchema), adminController.createUser);
+router.put('/users/:id', authorize('ADMIN'), validate(updateUserSchema), adminController.updateUser);
+router.delete('/users/:id', authorize('ADMIN'), adminController.deleteUser);
 
 module.exports = router;

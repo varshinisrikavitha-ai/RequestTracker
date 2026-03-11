@@ -12,8 +12,8 @@ const requestsSummary = async () => {
 
   return {
     total,
-    byStatus: byStatus.map((s) => ({ status: s.status, count: s._count._all })),
-    byPriority: byPriority.map((p) => ({ priority: p.priority, count: p._count._all })),
+    byStatus:   Object.fromEntries(byStatus.map((s) => [s.status, s._count._all])),
+    byPriority: Object.fromEntries(byPriority.map((p) => [p.priority, p._count._all])),
   };
 };
 
