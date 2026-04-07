@@ -3,21 +3,21 @@ const { sendSuccess } = require('../utils/response.utils');
 
 const requestsSummary = async (req, res, next) => {
   try {
-    const data = await reportService.requestsSummary();
+    const data = await reportService.requestsSummary(req.user, req.query);
     sendSuccess(res, data, 'Requests summary');
   } catch (err) { next(err); }
 };
 
 const departmentPerformance = async (req, res, next) => {
   try {
-    const data = await reportService.departmentPerformance();
+    const data = await reportService.departmentPerformance(req.user, req.query);
     sendSuccess(res, data, 'Department performance report');
   } catch (err) { next(err); }
 };
 
 const monthlyReport = async (req, res, next) => {
   try {
-    const data = await reportService.monthlyReport();
+    const data = await reportService.monthlyReport(req.user, req.query);
     sendSuccess(res, data, 'Monthly report');
   } catch (err) { next(err); }
 };

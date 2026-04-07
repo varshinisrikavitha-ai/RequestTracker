@@ -47,23 +47,24 @@ const MyRequests = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:flex-row sm:items-center sm:justify-between sm:p-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Requests</h1>
-          <p className="text-gray-600 mt-1">View and manage all your submitted requests</p>
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-4xl">My Requests</h1>
+          <p className="mt-2 text-sm text-slate-500 sm:text-base">View and manage all your submitted requests</p>
         </div>
-        <button onClick={() => fetchRequests(filterStatus)} className="p-2 text-gray-500 hover:text-blue-600 transition">
-          <RefreshCw size={20} />
+        <button onClick={() => fetchRequests(filterStatus)} className="self-start rounded-xl border border-slate-200 bg-white p-3 text-slate-500 transition hover:border-blue-200 hover:text-blue-700 hover:bg-slate-50 sm:self-auto">
+          <RefreshCw size={24} />
         </button>
       </div>
 
       {/* Status Filters */}
-      <Card className="p-4">
+      <Card className="border border-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.06)] p-4">
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setFilterStatus('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            className={`px-4 py-2.5 rounded-xl font-semibold transition tracking-wide text-sm ${filterStatus === 'all' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
           >
             All {pagination ? `(${pagination.total})` : ''}
           </button>
@@ -71,7 +72,7 @@ const MyRequests = () => {
             <button
               key={s}
               onClick={() => setFilterStatus(s)}
-              className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === s ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`px-4 py-2.5 rounded-xl font-semibold transition tracking-wide text-sm ${filterStatus === s ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
             >
               {formatStatus(s)}
             </button>
@@ -80,13 +81,13 @@ const MyRequests = () => {
       </Card>
 
       {/* Table */}
-      <Card>
+      <Card className="border border-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
           </div>
         ) : error ? (
-          <p className="text-red-600 text-sm py-6 text-center">{error}</p>
+          <p className="py-6 text-center text-sm text-rose-600">{error}</p>
         ) : (
           <Table
             columns={columns}
@@ -94,7 +95,7 @@ const MyRequests = () => {
             actions={(row) => (
               <button
                 onClick={() => navigate(`/request/${row.id}`)}
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition"
+                className="flex items-center gap-2 rounded-lg px-3 py-1.5 font-semibold text-blue-700 transition hover:bg-blue-50 hover:text-blue-800"
               >
                 <Eye size={16} />
                 View

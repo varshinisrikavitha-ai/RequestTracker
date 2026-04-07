@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, AlertCircle, TrendingUp } from 'lucide-react';
 import Card from '../components/Card';
 import Table from '../components/Table';
 import Badge from '../components/Badge';
@@ -47,22 +47,25 @@ const Dashboard = () => {
   }, [isAdmin, recentPage]);
 
   const columns = [
-    { key: 'id', label: 'Request ID', render: (row) => <span className="font-mono text-xs">{row.id.slice(0, 8)}…</span> },
+    { key: 'id', label: 'Request ID', render: (row) => <span className="font-mono text-xs text-slate-500">{row.id.slice(0, 8)}…</span> },
     { key: 'title', label: 'Title' },
     { key: 'priority', label: 'Priority', render: (row) => <Badge text={formatPriority(row.priority)} status={row.priority} /> },
     { key: 'status', label: 'Status', render: (row) => <Badge text={formatStatus(row.status)} status={row.status} /> },
     { key: 'createdAt', label: 'Submitted', render: (row) => formatDate(row.createdAt) },
   ];
 
-  const StatCard = ({ icon: Icon, title, value, iconBg, iconColor, borderColor }) => (
-    <Card className={`border-l-4 ${borderColor}`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-600 text-sm font-medium">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
-        </div>
-        <div className={`p-3 rounded-lg ${iconBg}`}>
-          <Icon size={28} className={iconColor} />
+  const StatCard = ({ icon: Icon, title, value, gradient, icon_color }) => (
+    <Card className={`relative overflow-hidden group border border-slate-200 ${gradient}`}>
+      <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-white/25 group-hover:scale-110 transition-transform duration-500" />
+      <div className="relative">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-white/80 text-sm font-medium uppercase tracking-wide">{title}</p>
+            <p className="text-4xl font-bold text-white mt-3">{value}</p>
+          </div>
+          <div className={`p-4 rounded-2xl ${icon_color} bg-white/20`}>
+            <Icon size={32} className="text-white" />
+          </div>
         </div>
       </div>
     </Card>
@@ -78,7 +81,7 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700">
+      <div className="p-4 bg-rose-900/20 border border-rose-500/30 rounded-2xl flex items-center gap-3 text-rose-300">
         <AlertCircle size={20} />
         <span>{error}</span>
       </div>
@@ -93,40 +96,48 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Welcome back, {user?.name}! Here's your overview.</p>
+    <div className="space-y-8">
+      {/* Hero Section */}
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:p-8">
+        <h1 className="text-2xl font-bold text-slate-900 sm:text-4xl">Dashboard</h1>
+        <p className="mt-2 text-sm text-slate-600 sm:text-lg">Welcome back, <span className="font-semibold text-blue-700">{user?.name}</span>. Here's your performance overview.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard icon={Clock} title="Total Requests" value={stats.totalRequests} iconBg="bg-blue-100" iconColor="text-blue-600" borderColor="border-blue-500" />
-        <StatCard icon={Clock} title="Pending (Under Review + Processing)" value={stats.pendingRequests} iconBg="bg-yellow-100" iconColor="text-yellow-600" borderColor="border-yellow-500" />
-        <StatCard icon={CheckCircle} title="Completed (Approved + Completed)" value={stats.completedRequests} iconBg="bg-green-100" iconColor="text-green-600" borderColor="border-green-500" />
-        <StatCard icon={XCircle} title="Rejected" value={stats.rejectedRequests} iconBg="bg-red-100" iconColor="text-red-600" borderColor="border-red-500" />
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
+        <StatCard icon={Clock} title="Total Requests" value={stats.totalRequests} gradient="bg-gradient-to-br from-blue-600 to-blue-700" icon_color="bg-blue-500/30" />
+        <StatCard icon={Clock} title="Pending" value={stats.pendingRequests} gradient="bg-gradient-to-br from-amber-500 to-amber-600" icon_color="bg-amber-500/30" />
+        <StatCard icon={CheckCircle} title="Completed" value={stats.completedRequests} gradient="bg-gradient-to-br from-emerald-500 to-green-600" icon_color="bg-emerald-500/30" />
+        <StatCard icon={XCircle} title="Rejected" value={stats.rejectedRequests} gradient="bg-gradient-to-br from-rose-500 to-red-600" icon_color="bg-rose-500/30" />
       </div>
 
-      <Card>
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Recent Requests (Last 10)</h2>
-          <p className="text-gray-600 text-sm mt-1">Use pagination to view all request records.</p>
+      {/* Recent Requests Table */}
+      <Card className="border border-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
+        <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-xl font-bold text-slate-900 sm:text-2xl">
+              <TrendingUp size={24} className="text-blue-600" />
+              Recent Requests
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">Your 10 most recent request submissions</p>
+          </div>
         </div>
         {recentRequests.length > 0
           ? <Table columns={columns} data={recentRequests} />
-          : <p className="text-gray-500 text-sm py-6 text-center">No requests yet.</p>
+          : <p className="py-8 text-center text-sm text-slate-500">No requests yet. Create one to get started!</p>
         }
 
         {recentPagination && recentPagination.totalPages > 1 && (
-          <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
-            <p className="text-sm text-gray-600">
-              Page {recentPagination.page} of {recentPagination.totalPages}
+          <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
+            <p className="text-sm text-slate-500">
+              Page <span className="font-semibold text-blue-700">{recentPagination.page}</span> of <span className="font-semibold text-blue-700">{recentPagination.totalPages}</span>
             </p>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setRecentPage((p) => Math.max(1, p - 1))}
                 disabled={!recentPagination.hasPrevPage}
-                className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 Previous
               </button>
@@ -134,7 +145,7 @@ const Dashboard = () => {
                 type="button"
                 onClick={() => setRecentPage((p) => p + 1)}
                 disabled={!recentPagination.hasNextPage}
-                className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 Next
               </button>
@@ -144,27 +155,28 @@ const Dashboard = () => {
       </Card>
 
       {isAdmin && statusBreakdown.length > 0 && (
-        <Card>
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Status Breakdown</h2>
+        <Card className="border border-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">Status Distribution</h2>
+            <p className="mt-1 text-sm text-slate-500">Request breakdown across all statuses</p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
             {statusBreakdown.map(({ status, count }) => {
               const pct = Math.round((count / totalForChart) * 100);
               return (
-                <div key={status} className="text-center">
-                  <div className="relative w-16 h-16 mx-auto mb-3">
+                <div key={status} className="text-center group">
+                  <div className="relative w-20 h-20 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                     <svg className="w-full h-full transform -rotate-90">
-                      <circle cx="32" cy="32" r="28" fill="none" stroke="#e5e7eb" strokeWidth="4" />
-                      <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="4"
-                        strokeDasharray={`${176 * (pct / 100)} 176`}
-                        className={statusColorMap[status] || 'text-gray-400'}
+                      <circle cx="40" cy="40" r="32" fill="none" stroke="#cbd5e1" strokeWidth="2" opacity="0.5" />
+                      <circle cx="40" cy="40" r="32" fill="none" stroke="currentColor" strokeWidth="3"
+                        strokeDasharray={`${201 * (pct / 100)} 201`}
+                        className={statusColorMap[status] || 'text-slate-400'}
                       />
                     </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold">{pct}%</span>
+                    <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-slate-900">{pct}%</span>
                   </div>
-                  <p className="text-xs font-medium text-gray-900">{formatStatus(status)}</p>
-                  <p className="text-xs text-gray-500">{count}</p>
+                  <p className="text-sm font-semibold text-slate-800 transition group-hover:text-blue-700">{formatStatus(status)}</p>
+                  <p className="mt-1 text-xs text-slate-500">{count} {count === 1 ? 'request' : 'requests'}</p>
                 </div>
               );
             })}

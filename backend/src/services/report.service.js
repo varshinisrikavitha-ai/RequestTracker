@@ -1,13 +1,78 @@
 const { prisma } = require('../config/database');
 
+const buildRequestScope = (user) => {
+  if (!user) return {};
+  if (user.role === 'STAFF' || user.role === 'VIEWER') return { createdBy: user.id };
+  if (user.role === 'DEPARTMENT_HEAD') return { departmentId: user.departmentId };
+  return {};
+};
+
+const parseDateRange = (query = {}) => {
+  const range = {};
+
+  if (query.startDate) {
+    const startDate = new Date(`${query.startDate}T00:00:00.000`);
+    if (!Number.isNaN(startDate.getTime())) {
+      range.gte = startDate;
+    }
+  }
+
+  if (query.endDate) {
+    const endDate = new Date(`${query.endDate}T23:59:59.999`);
+    if (!Number.isNaN(endDate.getTime())) {
+      range.lte = endDate;
+    }
+  }
+
+  return Object.keys(range).length > 0 ? range : null;
+};
+
+const buildRequestWhere = (user, query) => {
+  const where = buildRequestScope(user);
+  const createdAt = parseDateRange(query);
+
+  if (createdAt) {
+    where.createdAt = createdAt;
+  }
+
+  return where;
+};
+
+const buildMonthBuckets = (query) => {
+  const createdAt = parseDateRange(query);
+  const endDate = createdAt?.lte || new Date();
+  const startDate = createdAt?.gte || new Date(endDate.getFullYear(), endDate.getMonth() - 11, 1);
+
+  const buckets = {};
+  const cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+
+  while (cursor <= endMonth) {
+    const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
+    buckets[key] = {
+      month: key,
+      submitted: 0,
+      approved: 0,
+      completed: 0,
+      rejected: 0,
+      total: 0,
+    };
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  return buckets;
+};
+
 /**
  * Overall requests summary.
  */
-const requestsSummary = async () => {
+const requestsSummary = async (user, query = {}) => {
+  const where = buildRequestWhere(user, query);
+
   const [total, byStatus, byPriority] = await Promise.all([
-    prisma.request.count(),
-    prisma.request.groupBy({ by: ['status'], _count: { _all: true } }),
-    prisma.request.groupBy({ by: ['priority'], _count: { _all: true } }),
+    prisma.request.count({ where }),
+    prisma.request.groupBy({ by: ['status'], where, _count: { _all: true } }),
+    prisma.request.groupBy({ by: ['priority'], where, _count: { _all: true } }),
   ]);
 
   return {
@@ -20,12 +85,25 @@ const requestsSummary = async () => {
 /**
  * Performance per department.
  */
-const departmentPerformance = async () => {
+const departmentPerformance = async (user, query = {}) => {
+  const requestWhere = buildRequestWhere(user, query);
+  const departmentWhere = {};
+
+  if (user?.role === 'DEPARTMENT_HEAD' && user.departmentId) {
+    departmentWhere.id = user.departmentId;
+  }
+
+  if (user?.role === 'STAFF' || user?.role === 'VIEWER') {
+    departmentWhere.requests = { some: requestWhere };
+  }
+
   const departments = await prisma.department.findMany({
+    where: departmentWhere,
     select: {
       id: true,
       name: true,
       requests: {
+        where: requestWhere,
         select: { status: true },
       },
     },
@@ -47,26 +125,21 @@ const departmentPerformance = async () => {
 /**
  * Monthly request trends (last 12 months).
  */
-const monthlyReport = async () => {
-  const now = new Date();
-  const startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+const monthlyReport = async (user, query = {}) => {
+  const where = buildRequestWhere(user, query);
 
   const requests = await prisma.request.findMany({
-    where: { createdAt: { gte: startDate } },
+    where,
     select: { createdAt: true, status: true },
   });
 
-  const months = {};
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    months[key] = { month: key, submitted: 0, completed: 0, rejected: 0, total: 0 };
-  }
+  const months = buildMonthBuckets(query);
 
   requests.forEach((r) => {
     const key = `${r.createdAt.getFullYear()}-${String(r.createdAt.getMonth() + 1).padStart(2, '0')}`;
     if (months[key]) {
       months[key].total++;
+      if (r.status === 'APPROVED') months[key].approved++;
       if (r.status === 'COMPLETED') months[key].completed++;
       if (r.status === 'REJECTED') months[key].rejected++;
       months[key].submitted++;

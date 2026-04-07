@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Bell, Menu, User, Settings, LogOut } from 'lucide-react';
+import { Search, Bell, Menu, User, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getNotifications, markAsRead } from '../api/notifications.api';
@@ -50,36 +50,42 @@ const TopBar = ({ toggleSidebar }) => {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-      <div className="flex items-center justify-between px-6 py-4">
+    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur-xl">
+      <div className="flex items-center justify-between px-4 py-4 md:px-6">
         <div className="flex items-center gap-4 flex-1">
-          <button onClick={toggleSidebar} className="lg:hidden text-gray-600 hover:text-gray-900">
+          <button
+            onClick={toggleSidebar}
+            className="rounded-2xl border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:border-blue-200 hover:text-slate-900 lg:hidden"
+          >
             <Menu size={24} />
           </button>
-          <div className="hidden md:flex items-center gap-2 bg-gray-100 rounded-lg px-4 py-2 flex-1 max-w-md">
-            <Search size={18} className="text-gray-400" />
-            <input type="text" placeholder="Search requests..." className="bg-transparent outline-none flex-1 text-sm" />
+          <div className="hidden flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm md:flex md:max-w-lg">
+            <Search size={18} className="text-slate-400" />
+            <input type="text" placeholder="Search requests..." className="flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400" />
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 md:gap-6">
           {/* Notifications Bell */}
           <div className="relative">
-            <button onClick={handleBellClick} className="relative text-gray-600 hover:text-gray-900">
+            <button
+              onClick={handleBellClick}
+              className="relative rounded-2xl border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:border-blue-200 hover:text-slate-900"
+            >
               <Bell size={20} />
               {unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-red-500 text-xs font-semibold text-white shadow-lg">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900">Notifications</h3>
+              <div className="absolute right-0 mt-3 w-80 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.12)] z-50">
+                <div className="flex items-center justify-between border-b border-slate-200 p-4">
+                  <h3 className="font-semibold text-slate-900">Notifications</h3>
                   {unreadCount > 0 && (
-                    <span className="text-xs text-blue-600">{unreadCount} unread</span>
+                    <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">{unreadCount} unread</span>
                   )}
                 </div>
                 <div className="max-h-96 overflow-y-auto">
@@ -87,22 +93,22 @@ const TopBar = ({ toggleSidebar }) => {
                     <div
                       key={notif.id}
                       onClick={() => !notif.isRead && handleMarkRead(notif.id)}
-                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${!notif.isRead ? 'bg-blue-50' : ''}`}
+                      className={`cursor-pointer border-b border-slate-100 p-4 transition hover:bg-slate-50 ${!notif.isRead ? 'bg-blue-50/70' : ''}`}
                     >
                       <div className="flex justify-between items-start gap-2">
-                        <p className="text-sm text-gray-700 flex-1">{notif.message}</p>
-                        {!notif.isRead && <div className="w-2 h-2 bg-blue-500 rounded-full mt-1 flex-shrink-0" />}
+                        <p className="flex-1 text-sm text-slate-700">{notif.message}</p>
+                        {!notif.isRead && <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500" />}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="mt-1 text-xs text-slate-500">
                         {new Date(notif.createdAt).toLocaleString()}
                       </p>
                     </div>
                   )) : (
-                    <div className="p-6 text-center text-gray-500 text-sm">No notifications</div>
+                    <div className="p-6 text-center text-sm text-slate-500">No notifications</div>
                   )}
                 </div>
-                <div className="p-3 border-t border-gray-200 text-center">
-                  <button onClick={() => { navigate('/notifications'); setShowNotifications(false); }} className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                <div className="border-t border-slate-200 p-3 text-center">
+                  <button onClick={() => { navigate('/notifications'); setShowNotifications(false); }} className="text-sm font-medium text-blue-600 hover:text-blue-700">
                     View all notifications
                   </button>
                 </div>
@@ -114,27 +120,29 @@ const TopBar = ({ toggleSidebar }) => {
           <div className="relative">
             <button
               onClick={() => { setShowProfileMenu((v) => !v); setShowNotifications(false); }}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+              className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-slate-900"
             >
-              <span className="text-2xl">👤</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm">{user?.name?.[0] || 'U'}</span>
+              <span className="hidden text-sm font-medium md:block">{user?.name?.split(' ')[0] || 'User'}</span>
+              <ChevronDown size={16} className="text-slate-400" />
             </button>
 
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                <div className="p-4 border-b border-gray-200">
-                  <p className="font-semibold text-gray-900">{user?.name}</p>
-                  <p className="text-sm text-gray-500">{user?.email}</p>
-                  <p className="text-xs text-gray-500 mt-1">{user?.role}</p>
+              <div className="absolute right-0 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.12)] z-50">
+                <div className="border-b border-slate-200 p-4">
+                  <p className="font-semibold text-slate-900">{user?.name}</p>
+                  <p className="text-sm text-slate-500">{user?.email}</p>
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">{user?.role}</p>
                 </div>
-                <button className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition text-sm">
+                <button className="flex w-full items-center gap-2 px-4 py-3 text-sm text-slate-700 transition hover:bg-slate-50">
                   <User size={16} /> Profile
                 </button>
-                <button className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition text-sm border-t border-gray-200">
+                <button className="flex w-full items-center gap-2 border-t border-slate-200 px-4 py-3 text-sm text-slate-700 transition hover:bg-slate-50">
                   <Settings size={16} /> Settings
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition text-sm border-t border-gray-200"
+                  className="flex w-full items-center gap-2 border-t border-slate-200 px-4 py-3 text-sm text-rose-600 transition hover:bg-rose-50"
                 >
                   <LogOut size={16} /> Logout
                 </button>

@@ -117,24 +117,24 @@ const SubmitRequest = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Submit Request</h1>
-        <p className="text-gray-600 mt-1">Fill in the form below to submit a new request</p>
+    <div className="space-y-8">
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:p-8">
+        <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Submit Request</h1>
+        <p className="mt-2 text-sm text-slate-500 sm:text-base">Fill in the form below to submit a new request</p>
       </div>
 
       {success && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-          <CheckCircle size={20} className="text-green-600" />
-          <p className="text-green-800 font-medium">Request submitted successfully!</p>
+        <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+          <CheckCircle size={20} className="text-emerald-600" />
+          <p className="font-medium text-emerald-800">Request submitted successfully!</p>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">{error}</div>
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div>
       )}
 
-      <Card className="max-w-3xl">
+      <Card className="max-w-3xl border border-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
         <form onSubmit={handleSubmit} className="space-y-6">
           <FormInput
             label="Request Title"
@@ -155,7 +155,7 @@ const SubmitRequest = () => {
             rows={5}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
             <Select
               label="Department"
               options={departmentOptions}
@@ -176,7 +176,7 @@ const SubmitRequest = () => {
           </div>
 
           {isDeptHead && (
-            <p className="text-xs text-gray-500 -mt-3">
+            <p className="-mt-3 text-xs text-slate-500">
               Department is locked to your assigned department.
             </p>
           )}
@@ -192,8 +192,8 @@ const SubmitRequest = () => {
 
           {/* File Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">Attachment (optional)</label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition group">
+            <label className="mb-3 block text-sm font-semibold text-slate-700">Attachment (optional)</label>
+            <div className="group rounded-2xl border-2 border-dashed border-slate-300 p-6 text-center transition hover:border-blue-400 bg-slate-50/60">
               <input
                 type="file"
                 onChange={handleFileChange}
@@ -202,30 +202,30 @@ const SubmitRequest = () => {
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,.txt"
               />
               <label htmlFor="file-upload" className="cursor-pointer">
-                <Upload size={32} className="mx-auto text-gray-400 group-hover:text-blue-500 transition" />
-                <p className="text-gray-600 font-medium mt-2">Click to select a file</p>
-                <p className="text-gray-500 text-xs mt-1">PDF, Word, JPEG, PNG, GIF, WEBP, TXT — max 10 MB</p>
+                <Upload size={32} className="mx-auto text-slate-400 transition group-hover:text-blue-600" />
+                <p className="mt-2 font-medium text-slate-700">Click to select a file</p>
+                <p className="mt-1 text-xs text-slate-500">PDF, Word, JPEG, PNG, GIF, WEBP, TXT — max 10 MB</p>
               </label>
             </div>
 
             {attachment && (
-              <div className="mt-3 flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+              <div className="mt-3 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
                 <div>
-                  <p className="font-medium text-gray-900 text-sm">{attachment.name}</p>
-                  <p className="text-gray-500 text-xs">{(attachment.size / 1024 / 1024).toFixed(2)} MB</p>
+                  <p className="text-sm font-medium text-slate-900">{attachment.name}</p>
+                  <p className="text-xs text-slate-500">{(attachment.size / 1024 / 1024).toFixed(2)} MB</p>
                 </div>
-                <button type="button" onClick={() => setAttachment(null)} className="text-red-600 hover:text-red-700">
+                <button type="button" onClick={() => setAttachment(null)} className="text-rose-600 hover:text-rose-700">
                   <X size={18} />
                 </button>
               </div>
             )}
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+              className="flex-1 rounded-2xl bg-gradient-to-r from-blue-700 to-indigo-600 py-3 font-medium text-white transition hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50"
             >
               {submitting ? 'Submitting…' : 'Submit Request'}
             </button>
@@ -241,7 +241,7 @@ const SubmitRequest = () => {
                 });
                 setAttachment(null);
               }}
-              className="flex-1 border border-gray-300 text-gray-700 font-medium py-3 rounded-lg hover:bg-gray-50 transition"
+              className="flex-1 rounded-2xl border border-slate-200 bg-white py-3 font-medium text-slate-700 transition hover:bg-slate-50"
             >
               Clear Form
             </button>

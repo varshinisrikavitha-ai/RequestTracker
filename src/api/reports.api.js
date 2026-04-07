@@ -1,10 +1,10 @@
 import api from './axiosClient';
 
-export const getRequestsSummary = () =>
-  api.get('/reports/requests-summary');
+export const getRequestsSummary = (params = {}) =>
+  api.get('/reports/requests-summary', { params });
 
-export const getDepartmentPerformance = () =>
-  api.get('/reports/department-performance');
+export const getDepartmentPerformance = (params = {}) =>
+  api.get('/reports/department-performance', { params });
 
-export const getMonthlyReport = () =>
-  api.get('/reports/monthly');
+export const getMonthlyReport = (params = {}) =>
+  api.get('/reports/monthly', { params });

@@ -4,7 +4,7 @@ const { authenticate } = require('../middlewares/auth.middleware');
 const { authorize } = require('../middlewares/role.middleware');
 
 const router = Router();
-router.use(authenticate, authorize('ADMIN', 'DEPARTMENT_HEAD'));
+router.use(authenticate, authorize('ADMIN', 'DEPARTMENT_HEAD', 'STAFF'));
 
 // GET /api/reports/requests-summary
 router.get('/requests-summary', reportController.requestsSummary);

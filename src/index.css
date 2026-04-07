@@ -7,7 +7,13 @@
 }
 
 body {
-  @apply bg-gray-50 font-sans text-gray-900;
+  @apply text-slate-900 font-sans;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.16), transparent 28%),
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.12), transparent 26%),
+    linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+  min-height: 100vh;
 }
 
 html {
@@ -20,17 +26,26 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100;
+  @apply bg-slate-100;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded hover:bg-gray-400;
+  @apply bg-slate-300 rounded hover:bg-slate-400;
 }
 
 /* Smooth transitions */
 @layer components {
   .transition-smooth {
     @apply transition duration-300 ease-in-out;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, and Opera */
   }
 
   .text-truncate {
