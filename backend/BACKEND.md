@@ -52,12 +52,31 @@ BCRYPT_ROUNDS=12
 UPLOAD_DIR=uploads
 MAX_FILE_SIZE_MB=10
 CLIENT_URL=http://localhost:5173
+
+# Email notifications (SMTP)
+EMAIL_ENABLED=false
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+SMTP_FROM="Request Tracker <your_email@gmail.com>"
+NOTIFICATION_EMAIL_OVERRIDE=
 ```
 
 > **Security:** Never commit `.env` to version control. Generate a strong `JWT_SECRET` with:
 > ```bash
 > node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 > ```
+
+To also receive a copy of every notification in one mailbox (for example `varshinisri.kavitha@gmail.com`), set:
+
+```dotenv
+EMAIL_ENABLED=true
+NOTIFICATION_EMAIL_OVERRIDE=varshinisri.kavitha@gmail.com
+```
+
+You can provide multiple extra recipients separated by commas.
 
 ---
 

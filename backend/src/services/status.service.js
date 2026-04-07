@@ -4,7 +4,7 @@ const notificationService = require('./notification.service');
 
 // Allowed status transitions
 const ALLOWED_TRANSITIONS = {
-  SUBMITTED:    ['UNDER_REVIEW', 'REJECTED'],
+  SUBMITTED:    ['UNDER_REVIEW', 'APPROVED', 'REJECTED'],
   UNDER_REVIEW: ['APPROVED', 'REJECTED'],
   APPROVED:     ['PROCESSING'],
   REJECTED:     [],
@@ -56,6 +56,10 @@ const updateStatus = async (requestId, { status, comment }, user) => {
   await notificationService.createNotification(
     request.createdBy,
     `Your request "${request.title}" status has been updated to: ${status}.${comment ? ` Comment: ${comment}` : ''}`
+  );
+
+  await notificationService.createNotificationForAdmins(
+    `Request "${request.title}" status changed to ${status} by ${user.role}.`
   );
 
   return updatedRequest;

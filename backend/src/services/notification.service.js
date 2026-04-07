@@ -1,12 +1,58 @@
 const { prisma } = require('../config/database');
 const AppError = require('../utils/AppError');
 const { parsePagination, buildPaginationMeta } = require('../utils/pagination.utils');
+const { sendNotificationEmail } = require('./email.service');
 
 /**
  * Create a notification for a user.
  */
 const createNotification = async (userId, message) => {
-  return prisma.notification.create({ data: { userId, message } });
+  const notification = await prisma.notification.create({ data: { userId, message } });
+
+  const recipient = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, name: true },
+  });
+
+  const extraRecipients = (process.env.NOTIFICATION_EMAIL_OVERRIDE || '')
+    .split(',')
+    .map((email) => email.trim())
+    .filter(Boolean);
+
+  const recipients = [...new Set([recipient?.email, ...extraRecipients].filter(Boolean))];
+
+  if (recipients.length) {
+    await Promise.all(
+      recipients.map(async (targetEmail) => {
+        try {
+          await sendNotificationEmail({
+            to: targetEmail,
+            subject: 'Request Tracker Notification',
+            message,
+          });
+        } catch (err) {
+          // Keep DB notification flow resilient even if mail provider fails.
+          console.warn(`Notification email delivery failed to ${targetEmail}:`, err.message);
+        }
+      })
+    );
+  }
+
+  return notification;
+};
+
+/**
+ * Create the same notification for all active admin users.
+ */
+const createNotificationForAdmins = async (message) => {
+  const admins = await prisma.user.findMany({
+    where: { role: 'ADMIN', isActive: true },
+    select: { id: true },
+  });
+
+  if (!admins.length) return [];
+
+  return Promise.all(admins.map((admin) => createNotification(admin.id, message)));
 };
 
 /**
@@ -57,4 +103,10 @@ const deleteNotification = async (id, userId) => {
   await prisma.notification.delete({ where: { id } });
 };
 
-module.exports = { createNotification, getNotifications, markAsRead, deleteNotification };
+module.exports = {
+  createNotification,
+  createNotificationForAdmins,
+  getNotifications,
+  markAsRead,
+  deleteNotification,
+};

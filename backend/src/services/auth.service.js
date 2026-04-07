@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const { prisma } = require('../config/database');
 const { signToken } = require('../utils/jwt.utils');
 const AppError = require('../utils/AppError');
+const notificationService = require('./notification.service');
 
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS) || 12;
 
@@ -35,6 +36,15 @@ const login = async ({ email, password }) => {
   if (!isMatch) throw new AppError('Invalid email or password.', 401);
 
   const token = signToken({ id: user.id, role: user.role });
+
+  try {
+    await notificationService.createNotification(
+      user.id,
+      `New login detected for your account (${user.email}).`
+    );
+  } catch (err) {
+    console.warn('Login notification failed:', err.message);
+  }
 
   const { password: _, ...safeUser } = user;
   return { user: safeUser, token };

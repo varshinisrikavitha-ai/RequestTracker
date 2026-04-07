@@ -13,10 +13,43 @@ const REQUEST_INCLUDE = {
  * Create a new request (with optional file attachment).
  */
 const createRequest = async ({ title, description, priority, categoryId, departmentId }, userId, file) => {
+  const creator = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true, departmentId: true },
+  });
+
+  if (!creator) throw new AppError('User not found.', 404);
+
+  const effectiveDepartmentId =
+    creator.role === 'DEPARTMENT_HEAD' ? creator.departmentId : departmentId;
+
+  if (!effectiveDepartmentId) {
+    throw new AppError('Department is required to submit a request.', 400);
+  }
+
+  const [department, category] = await Promise.all([
+    prisma.department.findUnique({ where: { id: effectiveDepartmentId }, select: { id: true } }),
+    prisma.category.findUnique({ where: { id: categoryId }, select: { id: true, departmentId: true } }),
+  ]);
+
+  if (!department) throw new AppError('Selected department not found.', 404);
+  if (!category) throw new AppError('Selected category not found.', 404);
+  if (category.departmentId !== effectiveDepartmentId) {
+    throw new AppError('Selected category does not belong to the selected department.', 400);
+  }
+
   const attachmentUrl = file ? `/uploads/${file.filename}` : null;
 
   const request = await prisma.request.create({
-    data: { title, description, priority, categoryId, departmentId, createdBy: userId, attachmentUrl },
+    data: {
+      title,
+      description,
+      priority,
+      categoryId,
+      departmentId: effectiveDepartmentId,
+      createdBy: userId,
+      attachmentUrl,
+    },
     include: REQUEST_INCLUDE,
   });
 
@@ -29,6 +62,10 @@ const createRequest = async ({ title, description, priority, categoryId, departm
   await notificationService.createNotification(
     userId,
     `Your request "${title}" has been submitted successfully.`
+  );
+
+  await notificationService.createNotificationForAdmins(
+    `New request submitted: "${title}" by ${request.creator?.name || 'a user'}.`
   );
 
   return request;
@@ -118,6 +155,10 @@ const deleteRequest = async (id, user) => {
   }
 
   await prisma.request.delete({ where: { id } });
+
+  await notificationService.createNotificationForAdmins(
+    `Request "${request.title}" was deleted by ${user.role === 'ADMIN' ? 'an admin' : 'its creator'}.`
+  );
 };
 
 /**
@@ -143,6 +184,15 @@ const updateRequest = async (id, body, user, file) => {
     data,
     include: REQUEST_INCLUDE,
   });
+
+  await notificationService.createNotification(
+    request.createdBy,
+    `Your request "${updated.title}" details were updated.`
+  );
+
+  await notificationService.createNotificationForAdmins(
+    `Request "${updated.title}" was updated by ${user.role === 'ADMIN' ? 'an admin' : 'its creator'}.`
+  );
 
   return updated;
 };
