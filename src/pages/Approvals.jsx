@@ -6,14 +6,39 @@ import Badge from '../components/Badge';
 import Modal from '../components/Modal';
 import TextArea from '../components/TextArea';
 import { getRequests, updateStatus } from '../api/requests.api';
-import { formatPriority, formatDate, getErrorMessage } from '../utils/formatters';
+import { formatDate, getErrorMessage } from '../utils/formatters';
+
+const ACTIONABLE_STATUSES = ['SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'PROCESSING'];
+
+const getActionsForStatus = (status) => {
+  if (status === 'SUBMITTED') {
+    return [
+      { key: 'review', label: 'Move to Review', nextStatus: 'UNDER_REVIEW' },
+      { key: 'approve', label: 'Approve', nextStatus: 'APPROVED' },
+      { key: 'reject', label: 'Reject', nextStatus: 'REJECTED' },
+    ];
+  }
+  if (status === 'UNDER_REVIEW') {
+    return [
+      { key: 'approve', label: 'Approve', nextStatus: 'APPROVED' },
+      { key: 'reject', label: 'Reject', nextStatus: 'REJECTED' },
+    ];
+  }
+  if (status === 'APPROVED') {
+    return [{ key: 'processing', label: 'Mark Processing', nextStatus: 'PROCESSING' }];
+  }
+  if (status === 'PROCESSING') {
+    return [{ key: 'completed', label: 'Mark Completed', nextStatus: 'COMPLETED' }];
+  }
+  return [];
+};
 
 const Approvals = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState('approve');
+  const [selectedAction, setSelectedAction] = useState(null);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -21,8 +46,9 @@ const Approvals = () => {
   const fetchPending = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getRequests({ status: 'UNDER_REVIEW', limit: 100 });
-      setRequests(res.data.data || []);
+      const res = await getRequests({ limit: 200 });
+      const all = res.data.data || [];
+      setRequests(all.filter((request) => ACTIONABLE_STATUSES.includes(request.status)));
     } catch {
       // silently fail
     } finally {
@@ -34,23 +60,28 @@ const Approvals = () => {
     fetchPending();
   }, [fetchPending]);
 
-  const handleOpenModal = (request, type) => {
+  const handleOpenModal = (request, action) => {
     setSelectedRequest(request);
-    setModalType(type);
+    setSelectedAction(action);
     setError('');
     setComment('');
     setShowModal(true);
   };
 
   const handleSubmitApproval = async () => {
-    if (!selectedRequest) return;
+    if (!selectedRequest || !selectedAction) return;
+    if (selectedAction.nextStatus === 'REJECTED' && !comment.trim()) {
+      setError('Rejection reason is required.');
+      return;
+    }
+
     setSubmitting(true);
     setError('');
     try {
-      const newStatus = modalType === 'approve' ? 'APPROVED' : 'REJECTED';
-      await updateStatus(selectedRequest.id, newStatus, comment);
+      await updateStatus(selectedRequest.id, selectedAction.nextStatus, comment);
       setShowModal(false);
       setComment('');
+      setSelectedAction(null);
       await fetchPending();
     } catch (err) {
       setError(getErrorMessage(err));
@@ -69,12 +100,17 @@ const Approvals = () => {
     {
       key: 'requester',
       label: 'Submitted By',
-      render: (row) => row.requester?.name || '—',
+      render: (row) => row.creator?.name || '—',
     },
     {
       key: 'department',
       label: 'Department',
       render: (row) => row.department?.name || '—',
+    },
+    {
+      key: 'status',
+      label: 'Current Status',
+      render: (row) => <Badge text={row.status} status={row.status} />,
     },
     {
       key: 'priority',
@@ -132,18 +168,20 @@ const Approvals = () => {
             data={requests}
             actions={(row) => (
               <div className="flex gap-2">
-                <button
-                  onClick={() => handleOpenModal(row, 'approve')}
-                  className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition text-sm font-medium"
-                >
-                  <CheckCircle size={16} /> Approve
-                </button>
-                <button
-                  onClick={() => handleOpenModal(row, 'reject')}
-                  className="flex items-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-sm font-medium"
-                >
-                  <XCircle size={16} /> Reject
-                </button>
+                {getActionsForStatus(row.status).map((action) => (
+                  <button
+                    onClick={() => handleOpenModal(row, action)}
+                    key={`${row.id}-${action.key}`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition text-sm font-medium ${
+                      action.nextStatus === 'REJECTED'
+                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                    }`}
+                  >
+                    {action.nextStatus === 'REJECTED' ? <XCircle size={16} /> : <CheckCircle size={16} />}
+                    {action.label}
+                  </button>
+                ))}
               </div>
             )}
           />
@@ -157,10 +195,10 @@ const Approvals = () => {
 
       <Modal
         isOpen={showModal}
-        title={modalType === 'approve' ? 'Approve Request' : 'Reject Request'}
+        title={selectedAction ? `${selectedAction.label} Request` : 'Update Request Status'}
         onClose={() => setShowModal(false)}
         onSubmit={handleSubmitApproval}
-        submitText={submitting ? 'Processing…' : modalType === 'approve' ? 'Approve' : 'Reject'}
+        submitText={submitting ? 'Processing…' : selectedAction?.label || 'Submit'}
       >
         {selectedRequest && (
           <div className="space-y-4">
@@ -171,19 +209,15 @@ const Approvals = () => {
             </div>
             <div>
               <p className="text-sm text-gray-600">Submitted By</p>
-              <p className="font-medium text-gray-900">{selectedRequest.requester?.name || '—'}</p>
+              <p className="font-medium text-gray-900">{selectedRequest.creator?.name || '—'}</p>
             </div>
             <TextArea
-              label={modalType === 'approve' ? 'Approval Comments (optional)' : 'Rejection Reason'}
-              placeholder={
-                modalType === 'approve'
-                  ? 'Add approval comments...'
-                  : 'Please provide rejection reason...'
-              }
+              label={selectedAction?.nextStatus === 'REJECTED' ? 'Rejection Reason' : 'Comments (optional)'}
+              placeholder={selectedAction?.nextStatus === 'REJECTED' ? 'Please provide rejection reason...' : 'Add comments...'}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={4}
-              required={modalType === 'reject'}
+              required={selectedAction?.nextStatus === 'REJECTED'}
             />
           </div>
         )}

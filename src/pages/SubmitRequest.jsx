@@ -4,11 +4,16 @@ import Card from '../components/Card';
 import FormInput from '../components/FormInput';
 import TextArea from '../components/TextArea';
 import Select from '../components/Select';
+import { useAuth } from '../context/AuthContext';
 import { createRequest } from '../api/requests.api';
 import { getCategories, getDepartments } from '../api/admin.api';
 import { getErrorMessage } from '../utils/formatters';
 
 const SubmitRequest = () => {
+  const { user } = useAuth();
+  const isDeptHead = user?.role === 'DEPARTMENT_HEAD';
+  const assignedDepartmentId = user?.department?.id || user?.departmentId || '';
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -33,9 +38,16 @@ const SubmitRequest = () => {
     }).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (isDeptHead && assignedDepartmentId) {
+      setFormData((prev) => ({ ...prev, departmentId: assignedDepartmentId }));
+    }
+  }, [isDeptHead, assignedDepartmentId]);
+
+  const effectiveDepartmentId = isDeptHead ? assignedDepartmentId : formData.departmentId;
   const departmentOptions = departments.map((d) => ({ value: d.id, label: d.name }));
   const categoryOptions = categories
-    .filter((c) => !formData.departmentId || c.departmentId === formData.departmentId)
+    .filter((c) => !effectiveDepartmentId || c.departmentId === effectiveDepartmentId)
     .map((c) => ({ value: c.id, label: c.name }));
 
   const priorityOptions = [
@@ -62,19 +74,39 @@ const SubmitRequest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (formData.title.trim().length < 3) {
+      setError('Title must be at least 3 characters.');
+      return;
+    }
+    if (formData.description.trim().length < 10) {
+      setError('Description must be at least 10 characters.');
+      return;
+    }
+    if (!effectiveDepartmentId || !formData.categoryId) {
+      setError('Please select both department and category.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const fd = new FormData();
-      fd.append('title', formData.title);
-      fd.append('description', formData.description);
+      fd.append('title', formData.title.trim());
+      fd.append('description', formData.description.trim());
       fd.append('categoryId', formData.categoryId);
-      fd.append('departmentId', formData.departmentId);
+      fd.append('departmentId', effectiveDepartmentId);
       fd.append('priority', formData.priority);
       if (attachment) fd.append('attachment', attachment);
 
       await createRequest(fd);
       setSuccess(true);
-      setFormData({ title: '', description: '', categoryId: '', departmentId: '', priority: 'MEDIUM' });
+      setFormData({
+        title: '',
+        description: '',
+        categoryId: '',
+        departmentId: isDeptHead ? assignedDepartmentId : '',
+        priority: 'MEDIUM',
+      });
       setAttachment(null);
       setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
@@ -128,9 +160,10 @@ const SubmitRequest = () => {
               label="Department"
               options={departmentOptions}
               name="departmentId"
-              value={formData.departmentId}
+              value={effectiveDepartmentId}
               onChange={handleInputChange}
               required
+              disabled={isDeptHead}
             />
             <Select
               label="Category"
@@ -141,6 +174,12 @@ const SubmitRequest = () => {
               required
             />
           </div>
+
+          {isDeptHead && (
+            <p className="text-xs text-gray-500 -mt-3">
+              Department is locked to your assigned department.
+            </p>
+          )}
 
           <Select
             label="Priority"
@@ -192,7 +231,16 @@ const SubmitRequest = () => {
             </button>
             <button
               type="reset"
-              onClick={() => { setFormData({ title: '', description: '', categoryId: '', departmentId: '', priority: 'MEDIUM' }); setAttachment(null); }}
+              onClick={() => {
+                setFormData({
+                  title: '',
+                  description: '',
+                  categoryId: '',
+                  departmentId: isDeptHead ? assignedDepartmentId : '',
+                  priority: 'MEDIUM',
+                });
+                setAttachment(null);
+              }}
               className="flex-1 border border-gray-300 text-gray-700 font-medium py-3 rounded-lg hover:bg-gray-50 transition"
             >
               Clear Form

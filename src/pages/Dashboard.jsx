@@ -14,23 +14,28 @@ const Dashboard = () => {
   const [stats, setStats] = useState({ totalRequests: 0, pendingRequests: 0, completedRequests: 0, totalUsers: 0, totalDepartments: 0, rejectedRequests: 0 });
   const [recentRequests, setRecentRequests] = useState([]);
   const [statusBreakdown, setStatusBreakdown] = useState([]);
+  const [recentPagination, setRecentPagination] = useState(null);
+  const [recentPage, setRecentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const params = { page: recentPage, limit: 10 };
         if (isAdmin) {
-          const res = await getAdminDashboard();
+          const res = await getAdminDashboard(params);
           const d = res.data.data;
           setStats(d.stats);
           setRecentRequests(d.recentRequests || []);
+          setRecentPagination(d.recentRequestsPagination || null);
           setStatusBreakdown(d.statusBreakdown || []);
         } else {
-          const res = await getUserDashboard();
+          const res = await getUserDashboard(params);
           const d = res.data.data;
           setStats(d.stats);
           setRecentRequests(d.recentRequests || []);
+          setRecentPagination(d.recentRequestsPagination || null);
         }
       } catch (err) {
         setError(getErrorMessage(err));
@@ -39,7 +44,7 @@ const Dashboard = () => {
       }
     };
     fetchData();
-  }, [isAdmin]);
+  }, [isAdmin, recentPage]);
 
   const columns = [
     { key: 'id', label: 'Request ID', render: (row) => <span className="font-mono text-xs">{row.id.slice(0, 8)}…</span> },
@@ -96,20 +101,46 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard icon={Clock} title="Total Requests" value={stats.totalRequests} iconBg="bg-blue-100" iconColor="text-blue-600" borderColor="border-blue-500" />
-        <StatCard icon={Clock} title="Pending" value={stats.pendingRequests} iconBg="bg-yellow-100" iconColor="text-yellow-600" borderColor="border-yellow-500" />
-        <StatCard icon={CheckCircle} title="Completed" value={stats.completedRequests} iconBg="bg-green-100" iconColor="text-green-600" borderColor="border-green-500" />
-        <StatCard icon={XCircle} title={isAdmin ? 'Total Users' : 'Rejected'} value={isAdmin ? stats.totalUsers : stats.rejectedRequests} iconBg="bg-red-100" iconColor="text-red-600" borderColor="border-red-500" />
+        <StatCard icon={Clock} title="Pending (Under Review + Processing)" value={stats.pendingRequests} iconBg="bg-yellow-100" iconColor="text-yellow-600" borderColor="border-yellow-500" />
+        <StatCard icon={CheckCircle} title="Completed (Approved + Completed)" value={stats.completedRequests} iconBg="bg-green-100" iconColor="text-green-600" borderColor="border-green-500" />
+        <StatCard icon={XCircle} title="Rejected" value={stats.rejectedRequests} iconBg="bg-red-100" iconColor="text-red-600" borderColor="border-red-500" />
       </div>
 
       <Card>
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Recent Requests</h2>
-          <p className="text-gray-600 text-sm mt-1">Latest activity</p>
+          <h2 className="text-xl font-bold text-gray-900">Recent Requests (Last 10)</h2>
+          <p className="text-gray-600 text-sm mt-1">Use pagination to view all request records.</p>
         </div>
         {recentRequests.length > 0
           ? <Table columns={columns} data={recentRequests} />
           : <p className="text-gray-500 text-sm py-6 text-center">No requests yet.</p>
         }
+
+        {recentPagination && recentPagination.totalPages > 1 && (
+          <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
+            <p className="text-sm text-gray-600">
+              Page {recentPagination.page} of {recentPagination.totalPages}
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setRecentPage((p) => Math.max(1, p - 1))}
+                disabled={!recentPagination.hasPrevPage}
+                className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                onClick={() => setRecentPage((p) => p + 1)}
+                disabled={!recentPagination.hasNextPage}
+                className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {isAdmin && statusBreakdown.length > 0 && (

@@ -6,8 +6,8 @@ import Modal from '../components/Modal';
 import FormInput from '../components/FormInput';
 import {
   getUsers, createUser, updateUser, deleteUser,
-  getDepartments, createDepartment, deleteDepartment,
-  getCategories, createCategory, deleteCategory,
+  getDepartments, createDepartment, updateDepartment, deleteDepartment,
+  getCategories, createCategory, updateCategory, deleteCategory,
 } from '../api/admin.api';
 import { formatRole, getErrorMessage } from '../utils/formatters';
 
@@ -63,13 +63,28 @@ const AdminPanel = () => {
     setModalError('');
     try {
       if (activeTab === 'users') {
-        if (editItem) await updateUser(editItem.id, { name: newUser.name, role: newUser.role, departmentId: newUser.departmentId });
-        else await createUser(newUser);
+        const payload = {
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          departmentId: newUser.departmentId || undefined,
+        };
+
+        if (editItem) {
+          await updateUser(editItem.id, {
+            name: payload.name,
+            role: payload.role,
+            departmentId: newUser.departmentId || null,
+          });
+        } else {
+          await createUser({ ...payload, password: newUser.password });
+        }
       } else if (activeTab === 'departments') {
-        if (editItem) await updateUser(editItem.id, newDept); // reuse generic pattern
+        if (editItem) await updateDepartment(editItem.id, { name: newDept.name });
         else await createDepartment(newDept);
       } else if (activeTab === 'categories') {
-        if (!editItem) await createCategory(newCategory);
+        if (editItem) await updateCategory(editItem.id, newCategory);
+        else await createCategory(newCategory);
       }
       await fetchAll();
       setShowModal(false);
@@ -146,7 +161,7 @@ const AdminPanel = () => {
               actions={(user) => (
                 <div className="flex gap-2">
                   <button
-                    onClick={() => { setEditItem(user); setNewUser({ name: user.name, email: user.email, password: '', role: user.role, departmentId: user.departmentId || '' }); setModalError(''); setShowModal(true); }}
+                    onClick={() => { setEditItem(user); setNewUser({ name: user.name, email: user.email, password: '', role: user.role, departmentId: user.department?.id || '' }); setModalError(''); setShowModal(true); }}
                     className="text-blue-600 hover:text-blue-700"
                   >
                     <Edit size={18} />
@@ -233,7 +248,12 @@ const AdminPanel = () => {
           <div className="space-y-4">
             <FormInput label="Name" placeholder="John Doe" value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} required />
             <FormInput label="Email" type="email" placeholder="john@company.com" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required={!editItem} disabled={!!editItem} />
-            {!editItem && <FormInput label="Password" type="password" placeholder="Min 8 chars" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required />}
+            {!editItem && (
+              <>
+                <FormInput label="Password" type="password" placeholder="Min 8 chars" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required />
+                <p className="text-xs text-gray-500 -mt-2">Password must include at least 1 uppercase letter and 1 number.</p>
+              </>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
               <select value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-200">

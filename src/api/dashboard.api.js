@@ -1,7 +1,7 @@
 import api from './axiosClient';
 
-export const getAdminDashboard = () =>
-  api.get('/dashboard/admin');
+export const getAdminDashboard = (params = {}) =>
+  api.get('/dashboard/admin', { params });
 
-export const getUserDashboard = () =>
-  api.get('/dashboard/user');
+export const getUserDashboard = (params = {}) =>
+  api.get('/dashboard/user', { params });

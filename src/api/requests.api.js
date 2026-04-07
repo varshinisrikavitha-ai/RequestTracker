@@ -7,14 +7,10 @@ export const getRequestById = (id) =>
   api.get(`/requests/${id}`);
 
 export const createRequest = (formData) =>
-  api.post('/requests', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  api.post('/requests', formData);
 
 export const updateRequest = (id, formData) =>
-  api.put(`/requests/${id}`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  api.put(`/requests/${id}`, formData);
 
 export const deleteRequest = (id) =>
   api.delete(`/requests/${id}`);
