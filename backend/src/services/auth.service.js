@@ -26,12 +26,6 @@ const register = async ({ name, email, password, role = 'STAFF', departmentId })
     select: { id: true, name: true, email: true, role: true, departmentId: true, createdAt: true },
   });
 
-  try {
-    await demoDataService.ensureSampleDataForUser(user.id);
-  } catch (err) {
-    console.warn('Auto sample data generation failed during register:', err.message);
-  }
-
   const token = signToken({ id: user.id, role: user.role });
   return { user, token };
 };

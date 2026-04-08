@@ -165,12 +165,6 @@ const createUser = async (data) => {
     select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
   });
 
-  try {
-    await demoDataService.ensureSampleDataForUser(user.id);
-  } catch (err) {
-    console.warn('Auto sample data generation failed during admin createUser:', err.message);
-  }
-
   return user;
 };
 
