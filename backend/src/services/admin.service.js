@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const { prisma } = require('../config/database');
 const AppError = require('../utils/AppError');
 const { parsePagination, buildPaginationMeta } = require('../utils/pagination.utils');
+const demoDataService = require('./demoData.service');
 
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS) || 12;
 
@@ -153,12 +154,27 @@ const createUser = async (data) => {
   const existing = await prisma.user.findUnique({ where: { email: data.email } });
   if (existing) throw new AppError('A user with this email already exists.', 409);
 
-  const hashed = await bcrypt.hash(data.password, BCRYPT_ROUNDS);
-  return prisma.user.create({
-    data: { ...data, password: hashed },
+  const payload = { ...data };
+  if (payload.role !== 'ADMIN' && !payload.departmentId) {
+    payload.departmentId = await demoDataService.getDefaultDepartmentId();
+  }
+
+  const hashed = await bcrypt.hash(payload.password, BCRYPT_ROUNDS);
+  const user = await prisma.user.create({
+    data: { ...payload, password: hashed },
     select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
   });
+
+  try {
+    await demoDataService.ensureSampleDataForUser(user.id);
+  } catch (err) {
+    console.warn('Auto sample data generation failed during admin createUser:', err.message);
+  }
+
+  return user;
 };
+
+const bootstrapDemoData = async () => demoDataService.bootstrapDemoData();
 
 const updateUser = async (id, data) => {
   const user = await prisma.user.findUnique({ where: { id } });
@@ -185,4 +201,5 @@ module.exports = {
   createDepartment, getDepartments, getDepartmentById, updateDepartment, deleteDepartment,
   createCategory, getCategories, getCategoryById, updateCategory, deleteCategory,
   getUsers, getUserById, createUser, updateUser, deleteUser,
+  bootstrapDemoData,
 };

@@ -109,8 +109,16 @@ const deleteUser = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+const bootstrapDemoData = async (req, res, next) => {
+  try {
+    const result = await adminService.bootstrapDemoData();
+    sendSuccess(res, result, 'Demo data bootstrapped successfully');
+  } catch (err) { next(err); }
+};
+
 module.exports = {
   createDepartment, getDepartments, getDepartmentById, updateDepartment, deleteDepartment,
   createCategory, getCategories, getCategoryById, updateCategory, deleteCategory,
   getUsers, getUserById, createUser, updateUser, deleteUser,
+  bootstrapDemoData,
 };

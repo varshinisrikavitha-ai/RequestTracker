@@ -36,4 +36,7 @@ router.post('/users',    authorize('ADMIN'), validate(createUserSchema), adminCo
 router.put('/users/:id', authorize('ADMIN'), validate(updateUserSchema), adminController.updateUser);
 router.delete('/users/:id', authorize('ADMIN'), adminController.deleteUser);
 
+// ─── Demo Bootstrap (ADMIN only) ────────────────────────────────────────────
+router.post('/demo/bootstrap', authorize('ADMIN'), adminController.bootstrapDemoData);
+
 module.exports = router;

@@ -3,6 +3,7 @@ const { prisma } = require('../config/database');
 const { signToken } = require('../utils/jwt.utils');
 const AppError = require('../utils/AppError');
 const notificationService = require('./notification.service');
+const demoDataService = require('./demoData.service');
 
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS) || 12;
 
@@ -13,12 +14,23 @@ const register = async ({ name, email, password, role = 'STAFF', departmentId })
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) throw new AppError('A user with this email already exists.', 409);
 
+  let resolvedDepartmentId = departmentId || null;
+  if (role !== 'ADMIN' && !resolvedDepartmentId) {
+    resolvedDepartmentId = await demoDataService.getDefaultDepartmentId();
+  }
+
   const hashed = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
   const user = await prisma.user.create({
-    data: { name, email, password: hashed, role, departmentId },
+    data: { name, email, password: hashed, role, departmentId: resolvedDepartmentId },
     select: { id: true, name: true, email: true, role: true, departmentId: true, createdAt: true },
   });
+
+  try {
+    await demoDataService.ensureSampleDataForUser(user.id);
+  } catch (err) {
+    console.warn('Auto sample data generation failed during register:', err.message);
+  }
 
   const token = signToken({ id: user.id, role: user.role });
   return { user, token };
