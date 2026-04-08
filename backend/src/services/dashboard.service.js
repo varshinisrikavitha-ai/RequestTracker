@@ -66,7 +66,7 @@ const getAdminDashboard = async (query = {}) => {
 const getUserDashboard = async (user, query = {}) => {
   const { skip, take, page, limit } = parsePagination(query);
 
-  const where = user.role === 'DEPARTMENT_HEAD'
+  const where = user.role === 'DEPARTMENT_HEAD' && user.departmentId
     ? { departmentId: user.departmentId }
     : { createdBy: user.id };
 

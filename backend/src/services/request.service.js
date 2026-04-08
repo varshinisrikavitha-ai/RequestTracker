@@ -83,7 +83,7 @@ const getRequests = async (query, user) => {
   // Scope for non-admin roles
   if (user.role === 'STAFF' || user.role === 'VIEWER') {
     where.createdBy = user.id;
-  } else if (user.role === 'DEPARTMENT_HEAD') {
+  } else if (user.role === 'DEPARTMENT_HEAD' && user.departmentId) {
     where.departmentId = user.departmentId;
   }
 

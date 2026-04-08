@@ -3,7 +3,7 @@ const { prisma } = require('../config/database');
 const buildRequestScope = (user) => {
   if (!user) return {};
   if (user.role === 'STAFF' || user.role === 'VIEWER') return { createdBy: user.id };
-  if (user.role === 'DEPARTMENT_HEAD') return { departmentId: user.departmentId };
+  if (user.role === 'DEPARTMENT_HEAD' && user.departmentId) return { departmentId: user.departmentId };
   return {};
 };
 
