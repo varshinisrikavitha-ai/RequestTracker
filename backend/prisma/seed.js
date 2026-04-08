@@ -51,12 +51,12 @@ async function main() {
     { name:'System Admin',    email:'admin@requesttracker.com',    password:adminPw, role:'ADMIN',           dept:null            },
     { name:'IT Head',         email:'ithead@requesttracker.com',   password:headPw,  role:'DEPARTMENT_HEAD', dept:'IT'            },
     { name:'John Smith',      email:'john.smith@company.com',      password:pw,      role:'STAFF',           dept:'Engineering'   },
-    { name:'Sarah Johnson',   email:'sarah.johnson@company.com',   password:pw,      role:'DEPARTMENT_HEAD', dept:'Design'        },
+    { name:'Sarah Johnson',   email:'sarah.johnson@company.com',   password:headPw,      role:'DEPARTMENT_HEAD', dept:'Design'        },
     { name:'Mike Chen',       email:'mike.chen@company.com',       password:pw,      role:'STAFF',           dept:'Data Analytics'},
-    { name:'Emily Rodriguez', email:'emily.rodriguez@company.com', password:pw,      role:'ADMIN',           dept:'HR'            },
+    { name:'Emily Rodriguez', email:'emily.rodriguez@company.com', password:adminPw,      role:'ADMIN',           dept:'HR'            },
     { name:'David Park',      email:'david.park@company.com',      password:pw,      role:'STAFF',           dept:'IT'            },
-    { name:'Lisa Anderson',   email:'lisa.anderson@company.com',   password:pw,      role:'DEPARTMENT_HEAD', dept:'Finance'       },
-    { name:'Robert Wilson',   email:'robert.wilson@company.com',   password:pw,      role:'DEPARTMENT_HEAD', dept:'Operations'    },
+    { name:'Lisa Anderson',   email:'lisa.anderson@company.com',   password:headPw,      role:'DEPARTMENT_HEAD', dept:'Finance'       },
+    { name:'Robert Wilson',   email:'robert.wilson@company.com',   password:headPw,      role:'DEPARTMENT_HEAD', dept:'Operations'    },
     { name:'Jennifer Taylor', email:'jennifer.taylor@company.com', password:pw,      role:'STAFF',           dept:'Marketing'     },
   ];
   const users = {};
@@ -159,7 +159,7 @@ async function main() {
       history:[
         { status:'SUBMITTED',    comment:null,                           at:d('2024-02-18') },
         { status:'UNDER_REVIEW', comment:null,                           at:d('2024-02-20') },
-        { status:'APPROVED',     comment:'Approved – critical hardware', at:d('2024-02-22') },
+        { status:'APPROVED',     comment:'Approved ï¿½ critical hardware', at:d('2024-02-22') },
         { status:'PROCESSING',   comment:'Vendor order placed',          at:d('2024-02-25') },
       ],
     },
@@ -220,10 +220,10 @@ async function main() {
   console.log(`  Notifications: ${notifDefs.length}`);
   console.log('\n?? Login accounts:');
   console.log('  admin@requesttracker.com        /  Admin@123     (ADMIN)');
-  console.log('  ithead@requesttracker.com       /  Head@123      (DEPARTMENT_HEAD – IT)');
-  console.log('  john.smith@company.com          /  Password@123  (STAFF – Engineering)');
-  console.log('  sarah.johnson@company.com       /  Password@123  (DEPARTMENT_HEAD – Design)');
-  console.log('  david.park@company.com          /  Password@123  (STAFF – IT)');
+  console.log('  ithead@requesttracker.com       /  Head@123      (DEPARTMENT_HEAD ï¿½ IT)');
+  console.log('  john.smith@company.com          /  Password@123  (STAFF ï¿½ Engineering)');
+  console.log('  sarah.johnson@company.com       /  Password@123  (DEPARTMENT_HEAD ï¿½ Design)');
+  console.log('  david.park@company.com          /  Password@123  (STAFF ï¿½ IT)');
   console.log('  emily.rodriguez@company.com     /  Password@123  (ADMIN)');
   console.log('  <any other mock user>@company.com / Password@123');
 }
