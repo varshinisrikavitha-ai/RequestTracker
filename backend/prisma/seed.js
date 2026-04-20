@@ -167,60 +167,36 @@ async function main() {
         { status:'SUBMITTED',    comment:null,                       at:d('2024-01-05') },
         { status:'UNDER_REVIEW', comment:null,                       at:d('2024-01-08') },
         { status:'APPROVED',     comment:'Policy approved by board', at:d('2024-01-15') },
-        { status:'PROCESSING',   comment:'Drafting new documents',   at:d('2024-01-20') },
-        { status:'COMPLETED',    comment:'Policy published',         at:d('2024-01-25') },
-      ],
-    },
-  ];
-
-  const createdReqs = [];
-  for (const r of reqDefs) {
-    const req = await prisma.request.create({
-      data: {
-        title:r.title, description:r.description, priority:r.priority, status:r.status,
-        categoryId:cats[r.cat].id, departmentId:depts[r.dept].id,
-        createdBy:users[r.creator].id, createdAt:r.createdAt, updatedAt:r.updatedAt,
-      },
-    });
-    for (const h of r.history) {
-      await prisma.requestStatusHistory.create({
-        data:{ requestId:req.id, status:h.status, comment:h.comment, updatedBy:admin.id, createdAt:h.at },
-      });
-    }
-    createdReqs.push(req);
-  }
-
-  // -- Notifications ------------------------------------------------------------
-  const notifDefs = [
-    { user:'John Smith',      message:`Your request "${createdReqs[0].title}" status has been updated to: COMPLETED.`,                                        read:true,  at:d('2024-02-10','10:30:00') },
-    { user:'IT Head',         message:`New request "${createdReqs[4].title}" is pending your review.`,                                                         read:false, at:d('2024-02-13','14:15:00') },
-    { user:'David Park',      message:`Your request "${createdReqs[4].title}" has been updated to: REJECTED. Comment: Company policy requires in-office work.`,read:false, at:d('2024-02-13','15:45:00') },
-    { user:'Sarah Johnson',   message:`Your request "${createdReqs[1].title}" status has been updated to: PROCESSING.`,                                        read:true,  at:d('2024-02-10','09:00:00') },
-    { user:'Mike Chen',       message:`Your request "${createdReqs[2].title}" has been approved. Access has been granted.`,                                    read:false, at:d('2024-02-12','11:00:00') },
-    { user:'Lisa Anderson',   message:`Your request "${createdReqs[6].title}" has been approved.`,                                                             read:false, at:d('2024-02-15','10:00:00') },
-    { user:'Robert Wilson',   message:`Your request "${createdReqs[7].title}" status has been updated to: COMPLETED.`,                                        read:true,  at:d('2024-02-28','16:00:00') },
-    { user:'Jennifer Taylor', message:`Your request "${createdReqs[5].title}" has been submitted and is awaiting review.`,                                     read:false, at:d('2024-02-20','08:30:00') },
-    { user:'John Smith',      message:'Welcome to the Request Tracker system.',                                                                                read:true,  at:d('2024-01-14','08:00:00') },
-  ];
-  for (const n of notifDefs) {
-    await prisma.notification.create({
-      data:{ userId:users[n.user].id, message:n.message, read:n.read, createdAt:n.at },
-    });
-  }
-
-  console.log('\n? Seeding complete!');
-  console.log(`\n  Departments : ${deptNames.length}`);
-  console.log(`  Categories  : ${catDefs.length}`);
-  console.log(`  Users       : ${userDefs.length}`);
-  console.log(`  Requests    : ${reqDefs.length}`);
-  console.log(`  Notifications: ${notifDefs.length}`);
-  console.log('\n?? Login accounts:');
-  console.log('  admin@requesttracker.com        /  Admin@123     (ADMIN)');
-  console.log('  ithead@requesttracker.com       /  Head@123      (DEPARTMENT_HEAD � IT)');
-  console.log('  john.smith@company.com          /  Password@123  (STAFF � Engineering)');
-  console.log('  sarah.johnson@company.com       /  Password@123  (DEPARTMENT_HEAD � Design)');
-  console.log('  david.park@company.com          /  Password@123  (STAFF � IT)');
-  console.log('  emily.rodriguez@company.com     /  Password@123  (ADMIN)');
+        const reqDefs = [
+          {
+            title:'IT Staff Request',
+            description:'Need access to IT resources',
+            priority:'MEDIUM',
+            status:'SUBMITTED',
+            dept:'IT',
+            cat:'Access|IT',
+            creator:'IT Staff',
+            createdAt:d('2024-04-01'),
+            updatedAt:d('2024-04-01'),
+            history:[
+              { status:'SUBMITTED', comment:null, at:d('2024-04-01') },
+            ],
+          },
+          {
+            title:'Varshu IT Request',
+            description:'Request from Varshinisri Kavitha for IT support',
+            priority:'LOW',
+            status:'SUBMITTED',
+            dept:'IT',
+            cat:'Access|IT',
+            creator:'Varshinisri Kavitha',
+            createdAt:d('2024-04-02'),
+            updatedAt:d('2024-04-02'),
+            history:[
+              { status:'SUBMITTED', comment:null, at:d('2024-04-02') },
+            ],
+          },
+        ];
   console.log('  <any other mock user>@company.com / Password@123');
 }
 
