@@ -5,16 +5,12 @@ import { LogIn, ShieldCheck, Sparkles, ArrowRight, BarChart3 } from 'lucide-reac
 
 // Backend seed accounts (matches prisma/seed.js)
 const DEMO_ACCOUNTS = [
-  { name: 'System Admin',    email: 'admin@requesttracker.com',        password: 'Admin@123',    role: 'ADMIN',           dept: '' },
-  { name: 'IT Head',         email: 'ithead@requesttracker.com',       password: 'Head@123',     role: 'DEPARTMENT_HEAD', dept: 'IT' },
-  { name: 'Emily Rodriguez', email: 'emily.rodriguez@company.com',     password: 'Password@123', role: 'ADMIN',           dept: 'HR' },
-  { name: 'Sarah Johnson',   email: 'sarah.johnson@company.com',       password: 'Password@123', role: 'DEPARTMENT_HEAD', dept: 'Design' },
-  { name: 'Lisa Anderson',   email: 'lisa.anderson@company.com',       password: 'Password@123', role: 'DEPARTMENT_HEAD', dept: 'Finance' },
-  { name: 'Robert Wilson',   email: 'robert.wilson@company.com',       password: 'Password@123', role: 'DEPARTMENT_HEAD', dept: 'Operations' },
-  { name: 'John Smith',      email: 'john.smith@company.com',          password: 'Password@123', role: 'STAFF',           dept: 'Engineering' },
-  { name: 'Mike Chen',       email: 'mike.chen@company.com',           password: 'Password@123', role: 'STAFF',           dept: 'Data Analytics' },
-  { name: 'David Park',      email: 'david.park@company.com',          password: 'Password@123', role: 'STAFF',           dept: 'IT' },
-  { name: 'Jennifer Taylor', email: 'jennifer.taylor@company.com',     password: 'Password@123', role: 'STAFF',           dept: 'Marketing' },
+  // 1 Admin
+  { name: 'HR Admin',        email: 'hradmin@requesttracker.com',      password: 'Admin@123',    role: 'ADMIN',           dept: '' },
+  // 1 Head
+  { name: 'Engineering Head',email: 'enghead@requesttracker.com',      password: 'Head@123',     role: 'DEPARTMENT_HEAD', dept: 'Engineering' },
+  // 1 Staff
+  { name: 'IT Staff',        email: 'itstaff@requesttracker.com',      password: 'Password@123', role: 'STAFF',           dept: 'IT' },
 ];
 
 const Login = () => {
@@ -129,7 +125,7 @@ const Login = () => {
               </div>
 
               <div className="space-y-2 max-h-48 overflow-y-auto pr-1 scrollbar-hide">
-                {DEMO_ACCOUNTS.slice(0, 6).map((account) => (
+                {DEMO_ACCOUNTS.map((account) => (
                   <button
                     key={account.email}
                     type="button"

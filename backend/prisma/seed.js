@@ -44,20 +44,16 @@ async function main() {
 
   // -- Users --------------------------------------------------------------------
   const pw        = await bcrypt.hash('Password@123', 12);
+  const varshuPw  = await bcrypt.hash('Varshu@2006', 12);
   const adminPw   = await bcrypt.hash('Admin@123',    12);
   const headPw    = await bcrypt.hash('Head@123',     12);
 
   const userDefs = [
-    { name:'System Admin',    email:'admin@requesttracker.com',    password:adminPw, role:'ADMIN',           dept:null            },
-    { name:'IT Head',         email:'ithead@requesttracker.com',   password:headPw,  role:'DEPARTMENT_HEAD', dept:'IT'            },
-    { name:'John Smith',      email:'john.smith@company.com',      password:pw,      role:'STAFF',           dept:'Engineering'   },
-    { name:'Sarah Johnson',   email:'sarah.johnson@company.com',   password:headPw,      role:'DEPARTMENT_HEAD', dept:'Design'        },
-    { name:'Mike Chen',       email:'mike.chen@company.com',       password:pw,      role:'STAFF',           dept:'Data Analytics'},
-    { name:'Emily Rodriguez', email:'emily.rodriguez@company.com', password:adminPw,      role:'ADMIN',           dept:'HR'            },
-    { name:'David Park',      email:'david.park@company.com',      password:pw,      role:'STAFF',           dept:'IT'            },
-    { name:'Lisa Anderson',   email:'lisa.anderson@company.com',   password:headPw,      role:'DEPARTMENT_HEAD', dept:'Finance'       },
-    { name:'Robert Wilson',   email:'robert.wilson@company.com',   password:headPw,      role:'DEPARTMENT_HEAD', dept:'Operations'    },
-    { name:'Jennifer Taylor', email:'jennifer.taylor@company.com', password:pw,      role:'STAFF',           dept:'Marketing'     },
+    { name:'HR Admin',        email:'hradmin@requesttracker.com',  password:adminPw, role:'ADMIN', dept:null },
+    { name:'Engineering Head', email:'enghead@requesttracker.com', password:headPw, role:'DEPARTMENT_HEAD', dept:'Engineering' },
+    { name:'IT Staff', email:'itstaff@requesttracker.com', password:pw, role:'STAFF', dept:'IT' },
+    // Custom user
+    { name:'Varshinisri Kavitha', email:'varshinisri.kavitha@gmail.com', password:varshuPw, role:'STAFF', dept:'IT' },
   ];
   const users = {};
   for (const u of userDefs) {
